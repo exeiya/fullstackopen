@@ -17,8 +17,8 @@ const deleteId = (id) => {
   return request.then(response => response)
 }
 
-const update = (person) => {
-  const request = axios.put(`${baseUrl}/${person.id}`, person)
+const update = (person, id) => {
+  const request = axios.put(`${baseUrl}/${id}`, person)
   return request.then(response => response.data)
 }
 

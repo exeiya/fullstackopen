@@ -1,7 +1,7 @@
 import React from 'react'
 
-const PersonForm = ({ addPerson, newName, newNumber, handleNameChange, handleNumberChange }) => (
-  <form onSubmit={addPerson}>
+const PersonForm = ({ handleForm, newName, newNumber, handleNameChange, handleNumberChange }) => (
+  <form onSubmit={handleForm}>
     <div>
       nimi: <input value={newName} onChange={handleNameChange} />
     </div>
