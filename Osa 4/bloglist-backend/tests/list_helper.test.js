@@ -1,5 +1,6 @@
 const listHelper = require('../utils/list_helper')
 
+describe('list helpers', () => {
 test('dummy is called', () => {
   const blogs = []
 
@@ -317,4 +318,5 @@ describe('author with most likes', () => {
       likes: 17
     })
   })
+})
 })
