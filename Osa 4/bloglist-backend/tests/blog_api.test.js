@@ -2,46 +2,7 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-
-const initialBlogs = [
-  {
-    title: "React patterns",
-    author: "Michael Chan",
-    url: "https://reactpatterns.com/",
-    likes: 7
-  },
-  {
-    title: "Go To Statement Considered Harmful",
-    author: "Edsger W. Dijkstra",
-    url: "http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html",
-    likes: 5
-  },
-  {
-    title: "Canonical string reduction",
-    author: "Edsger W. Dijkstra",
-    url: "http://www.cs.utexas.edu/~EWD/transcriptions/EWD08xx/EWD808.html",
-    likes: 12
-  },
-  {
-    title: "First class tests",
-    author: "Robert C. Martin",
-    url: "http://blog.cleancoder.com/uncle-bob/2017/05/05/TestDefinitions.htmll",
-    likes: 10
-  },
-  {
-    title: "TDD harms architecture",
-    author: "Robert C. Martin",
-    url: "http://blog.cleancoder.com/uncle-bob/2017/03/03/TDD-Harms-Architecture.html",
-    likes: 0
-  },
-  {
-    title: "Type wars",
-    author: "Robert C. Martin",
-    url: "http://blog.cleancoder.com/uncle-bob/2016/05/01/TypeWars.html",
-    likes: 2
-  }  
-]
-
+const { initialBlogs, blogsInDb, format } = require('./test_helper')
 
 describe('when there are some blogs initially saved', () => {
   beforeAll(async () => {
@@ -60,21 +21,33 @@ describe('when there are some blogs initially saved', () => {
     })
 
     test('all blogs are returned', async () => {
-      const response = await api.get('/api/blogs')
+      const blogs = await blogsInDb()
 
-      expect(response.body.length).toBe(initialBlogs.length)
+      const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
 
-      const returnedTitles = response.body.map(blog => blog.title)
-      initialBlogs.forEach(blog => {
-        expect(returnedTitles).toContain(blog.title)
+      expect(response.body.length).toBe(blogs.length)
+
+      const returnedBlogs = response.body.map(format)
+      blogs.forEach(blog => {
+        expect(returnedBlogs).toContainEqual(blog)
       })
     })
 
     test('a specific blog is within the returned blogs', async () => {
-      const response = await api.get('/api/blogs')
-      const titles = response.body.map(blog => blog.title)
+      const blogs = await blogsInDb()
+      const blog = initialBlogs[0]
 
-      expect(titles).toContain('TDD harms architecture')
+      const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+      const returnedBlogs = response.body.map(format)
+
+      expect(returnedBlogs).toContainEqual(blog)
     })
   })
 
@@ -87,47 +60,39 @@ describe('when there are some blogs initially saved', () => {
         likes: 42
       }
 
+      const blogsBefore = await blogsInDb()
+
       await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
       
-      const response = await api.get('/api/blogs')
+      const blogsAfter = await blogsInDb()
 
-      const titles = response.body.map(b => b.title)
-
-      expect(response.body.length).toBe(initialBlogs.length + 1)
-      expect(titles).toContain('This is a new blog')
+      expect(blogsAfter.length).toBe(blogsBefore.length + 1)
+      expect(blogsAfter).toContainEqual(newBlog)
     })
 
     test('a blog without field likes is added with zero likes', async () => {
       const newBlog = {
         title: 'This is a blog with no likes',
         author: 'John Doe',
-        url: 'https:johndoe.com'
+        url: 'https//:johndoe.com'
       }
 
-      const addedBlog = await api
+      const blogsBefore = await blogsInDb()
+
+      await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
-      const response = await api.get('/api/blogs')
+      const blogsAfter = await blogsInDb()
 
-      const blogs = response.body.map(b => { 
-        return {
-          title: b.title,
-          likes: b.likes
-        } 
-      })
-
-      expect(response.body.length).toBe(initialBlogs.length + 2)
-      expect(blogs).toContainEqual({
-        title: 'This is a blog with no likes',
-        likes: 0
-      })
+      expect(blogsAfter.length).toBe(blogsBefore.length + 1)
+      expect(blogsAfter).toContainEqual({ ...newBlog, likes: 0 })
     })
 
     test('a blog without title and url is not added and status 400 is returned', async () => {
@@ -136,14 +101,115 @@ describe('when there are some blogs initially saved', () => {
         likes: 42
       }
 
-      const addedBlog = await api
+      const blogsBefore = await blogsInDb()
+
+      await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(400)
 
-      const response = await api.get('/api/blogs')
+      const blogsAfter = await blogsInDb()
+      expect(blogsAfter.length).toBe(blogsBefore.length)
+    })
+  })
 
-      expect(response.body.length).toBe(initialBlogs.length + 2)
+  describe('DELETE to /api/blogs/:id', () => {
+    let addedBlog
+
+    beforeAll(async () => {
+      addedBlog = new Blog({
+        title: 'This blog is going to be deleted',
+        author: 'Jane Doe',
+        url: 'http://blog.com',
+        likes: 10
+      })
+
+      await addedBlog.save()
+    })
+
+    test('deletes a blog and returns statuscode 204', async () => {
+      const blogsBefore = await blogsInDb()
+
+      await api
+        .delete(`/api/blogs/${addedBlog._id}`)
+        .expect(204)
+
+      const blogsAfter = await blogsInDb()
+
+      expect(blogsAfter).not.toContainEqual(format(addedBlog))
+      expect(blogsAfter.length).toBe(blogsBefore.length - 1)
+    })
+
+    test('returns 400 if id is invalid and does not delete anything', async () => {
+      const invalidId = '5bf03c4b2ff7cf11c494fef'
+      const blogsBefore = blogsInDb()
+
+      await api
+        .delete(`/api/blogs/${invalidId}`)
+        .expect(400)
+
+      const blogsAfter = blogsInDb()
+
+      expect(blogsAfter.length).toBe(blogsBefore.length)
+    })
+  })
+
+  describe('PUT to /api/blogs/:id', () => {
+    let addedBlog
+
+    beforeAll(async () => {
+      addedBlog = new Blog({
+        title: 'This blog is going to have more likes',
+        author: 'Jane Doe',
+        url: 'http://blog.com/likedblog',
+        likes: 5
+      })
+
+      await addedBlog.save()
+    })
+
+    test('updates a blog and returns statuscode 200', async () => {
+      const blogsBefore = await blogsInDb()
+
+      const updatedBlog = { 
+        title: addedBlog.title,
+        author: addedBlog.author,
+        url: addedBlog.url,
+        likes: 10 
+      }
+
+      await api
+        .put(`/api/blogs/${addedBlog._id}`)
+        .send(updatedBlog)
+        .expect(200)
+
+      const blogsAfter = await blogsInDb()
+
+      expect(blogsAfter).not.toContainEqual(format(addedBlog))
+      expect(blogsAfter).toContainEqual(updatedBlog)
+      expect(blogsAfter.length).toBe(blogsBefore.length)
+    })
+
+    test('with invalid id returns statuscode 400', async () => {
+      const invalidId = '5bf03c4b2ff7cf11c494fef'
+      const blogsBefore = blogsInDb()
+
+      const updatedBlog = { 
+        title: addedBlog.title,
+        author: addedBlog.author,
+        url: addedBlog.url,
+        likes: 25
+      }
+
+      await api
+        .put(`/api/blogs/${invalidId}`)
+        .send(updatedBlog)
+        .expect(400)
+
+      const blogsAfter = blogsInDb()
+
+      expect(blogsAfter).not.toContainEqual(updatedBlog)
+      expect(blogsAfter.length).toBe(blogsBefore.length)
     })
   })
 
