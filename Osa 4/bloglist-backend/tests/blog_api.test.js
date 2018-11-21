@@ -2,7 +2,8 @@ const supertest = require('supertest')
 const { app, server } = require('../index')
 const api = supertest(app)
 const Blog = require('../models/blog')
-const { initialBlogs, blogsInDb, format } = require('./test_helper')
+const User = require('../models/user')
+const { initialBlogs, blogsInDb, format, usersInDb } = require('./test_helper')
 
 describe('when there are some blogs initially saved', () => {
   beforeAll(async () => {
@@ -210,6 +211,154 @@ describe('when there are some blogs initially saved', () => {
 
       expect(blogsAfter).not.toContainEqual(updatedBlog)
       expect(blogsAfter.length).toBe(blogsBefore.length)
+    })
+  })
+
+  describe('when there is initally one user in db', async () => {
+    beforeAll(async () => {
+      await User.remove({})
+      const user = new User({ username: 'firstuser', password: 'secret' })
+      await user.save()
+    })
+  
+    describe('POST to /api/users', () => {
+      test('succeeds with valid username', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          username: 'iamnewuser',
+          name: 'John Doe',
+          password: 'secretpassword',
+          adult: true
+        }
+  
+        await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(200)
+          .expect('Content-Type', /application\/json/)
+  
+        const usersAfter = await usersInDb()
+  
+        expect(usersAfter.length).toBe(usersBefore.length + 1)
+        const usernames = usersAfter.map(user => user.username)
+        expect(usernames).toContain(newUser.username)
+      })
+  
+      test('fails with proper statuscode and error message if username is duplicate', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          username: 'iamnewuser',
+          name: 'J. Doe Again',
+          password: 'secretpassword',
+          adult: false
+        }
+  
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+  
+        expect(result.body).toEqual({ error: 'username must be unique' })
+  
+        const usersAfter = await usersInDb()
+  
+        expect(usersAfter.length).toBe(usersBefore.length)
+      })
+
+      test('fails with proper statuscode and error message if password is under 3 characters long', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          username: 'iamnewuser',
+          name: 'J. Doe Again',
+          password: 'no',
+          adult: false
+        }
+  
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+  
+        expect(result.body).toEqual({ error: 'password must be atleast 3 characters long' })
+  
+        const usersAfter = await usersInDb()
+  
+        expect(usersAfter.length).toBe(usersBefore.length)
+      })
+
+      test('fails with proper statuscode and error message if password is not given', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          username: "userwithoutpassword",
+          name: 'John Doe',
+          adult: true
+        }
+  
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+  
+        expect(result.body).toEqual({ error: 'user must have username and password' })
+  
+        const usersAfter = await usersInDb()
+  
+        expect(usersAfter.length).toBe(usersBefore.length)
+      })
+  
+
+      test('succeeds with a valid user and sets adult to true if it is not given', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          username: 'iamanothernewuser',
+          name: 'J. Doe',
+          password: 'secretpassword'
+        }
+  
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(200)
+          .expect('Content-Type', /application\/json/)
+  
+        const usersAfter = await usersInDb()
+
+        expect(usersAfter.length).toBe(usersBefore.length + 1)
+        const usernames = usersAfter.map(user => user.username)
+        expect(usernames).toContain(newUser.username)
+        expect(result.body.adult).toBe(true)
+      })
+
+      test('fails with proper statuscode and error message if username is not given', async () => {
+        const usersBefore = await usersInDb()
+  
+        const newUser = {
+          name: 'John Doe',
+          password: 'secret',
+          adult: true
+        }
+  
+        const result = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+  
+        expect(result.body).toEqual({ error: 'user must have username and password' })
+  
+        const usersAfter = await usersInDb()
+  
+        expect(usersAfter.length).toBe(usersBefore.length)
+      })
+      
     })
   })
 
