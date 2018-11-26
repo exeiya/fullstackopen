@@ -164,7 +164,7 @@ class App extends React.Component {
             blog={blog}
             like={this.likeBlog(blog.id)}
             delete={this.deleteBlog(blog.id)}
-            loggedUser={this.state.user}
+            loggedUser={this.state.user.username}
           />
         )}
       </div>

@@ -1,6 +1,14 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
 class Blog extends React.Component {
+  static propTypes = {
+    like: PropTypes.func.isRequired,
+    delete: PropTypes.func.isRequired,
+    blog: PropTypes.object.isRequired,
+    loggedUser: PropTypes.string.isRequired
+  }
+
   constructor(props) {
     super(props)
     this.state = {
@@ -23,7 +31,7 @@ class Blog extends React.Component {
       marginBottom: 5
     }
     const deleteButton = () => {
-      if (user === null || this.props.loggedUser.username === user.username ) {
+      if (user === null || this.props.loggedUser === user.username ) {
         return <button onClick={this.props.delete}>delete</button>
       }
       return null
