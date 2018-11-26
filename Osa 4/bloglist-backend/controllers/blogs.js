@@ -36,8 +36,8 @@ blogsRouter.post('/', async (request, response) => {
     const addedBlog = await new Blog(newBlog).save()
     user.blogs = user.blogs.concat(addedBlog._id)
     await user.save()
-
-    response.status(201).json(Blog.format(addedBlog))
+    
+    response.status(201).json({...Blog.format(addedBlog), user: { _id: user._id, username: user.username, name: user.name }})
   } catch (exception) {
     console.log(exception)
     if (exception.name === 'JsonWebTokenError') {
@@ -56,7 +56,7 @@ blogsRouter.delete('/:id', async (req, res) => {
     }
 
     const blog = await Blog.findById(req.params.id)
-    if (blog.user.toString() === decodedToken.id){
+    if ((blog.user === null || blog.user == undefined) || (blog.user.toString() === decodedToken.id)) {
       await Blog.findByIdAndRemove(req.params.id)
     } else {
       return res.status(403).json({ error: 'user permissions insufficient' })
@@ -73,17 +73,14 @@ blogsRouter.delete('/:id', async (req, res) => {
 })
 
 blogsRouter.put('/:id', async (req, res) => {
-  const { title, author, url, likes } = req.body
-  const blog = { title, author, url, likes }
-
+  const { title, author, url, likes, user } = req.body
   try {
-    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, blog, { new: true })
-    res.status(200).json(updatedBlog)
+    const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, { title, author, url, likes, user }, { new: true })
+    res.status(200).json(Blog.format(updatedBlog))
   } catch (e) {
     console.log(e)
     return res.status(400).send({ error: 'malformatted id' })
   }
 })
-
 
 module.exports = blogsRouter

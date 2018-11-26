@@ -5,6 +5,7 @@ import BlogForm from './components/BlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
 
 class App extends React.Component {
   constructor(props) {
@@ -22,9 +23,11 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    blogService.getAll().then(blogs =>
+    blogService.getAll().then(blogs => {
+      // sort blogs when the page is loaded - sorting on every like makes the UI elements constantly jump around resulting in bad UI experience
+      blogs = blogs.sort((a, b) => b.likes - a.likes) 
       this.setState({ blogs })
-    )
+    })
 
     const loggedUser = window.localStorage.getItem('loggedUser')
     if (loggedUser) {
@@ -55,7 +58,6 @@ class App extends React.Component {
   }
 
   handleLogout = (event) => {
-    event.preventDefault()
     this.setState({ user: null })
     window.localStorage.clear()
   }
@@ -79,9 +81,37 @@ class App extends React.Component {
         url: ''
       })
       this.showNotificationWithTimeout(`A new blog ${addedBlog.title} by ${addedBlog.author} added`, 'success')
+      this.blogForm.toggleVisibility()
     } catch (e) {
       console.log(e)
       this.showNotificationWithTimeout('A new blog could not be created', 'error')
+    }
+  }
+
+  likeBlog = (id) => async () => {
+    try {
+      const blog = this.state.blogs.find(b => b.id === id)
+      const userId = blog.user ? blog.user._id : null
+      const updatedBlog = await blogService.update(id, { ...blog, user: userId, likes: blog.likes + 1 })
+      this.setState({
+        blogs: this.state.blogs.map(b => b.id !== blog.id ? b : {...updatedBlog, user: blog.user })
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  deleteBlog = (id) => async () => {
+    const blog = this.state.blogs.find(b => b.id === id)
+    try {
+      if (window.confirm(`Delete blog ${blog.title} by ${blog.author}?`)) {
+        await blogService.deleteId(id)
+        this.setState({ blogs: this.state.blogs.filter(b => b.id !== id) })
+        return this.showNotificationWithTimeout(`Deleted blog ${blog.title} by ${blog.author}`, 'success')
+      }
+    } catch (e) {
+      console.log(e)
+      this.showNotificationWithTimeout(`Blog ${blog.title} by ${blog.author} could not be deleted`, 'error')
     }
   }
 
@@ -99,7 +129,13 @@ class App extends React.Component {
       return (
         <div>
           <h2>Log in to application</h2>
-          <LoginForm handleLogin={this.handleLogin} handleFormChange={this.handleLoginFormChange} username={this.state.username} password={this.state.password} />
+          <Notification notification={this.state.notification} />
+          <LoginForm 
+            handleLogin={this.handleLogin} 
+            handleFormChange={this.handleLoginFormChange}
+            username={this.state.username}
+            password={this.state.password} 
+          />
         </div>
       )
     }
@@ -112,10 +148,24 @@ class App extends React.Component {
           {this.state.user.name} logged in <button onClick={this.handleLogout}>Logout</button>
         </p>
         <h3>Create new blog entry</h3>
-        <BlogForm handleCreate={this.createBlog} handleFormChange={this.handleBlogFromChange} title={this.state.title} author={this.state.author} url={this.state.url} />
+        <Togglable buttonLabel='Create a new blog' ref={ component => this.blogForm = component }>
+          <BlogForm
+            handleCreate={this.createBlog}
+            handleFormChange={this.handleBlogFromChange}
+            title={this.state.title}
+            author={this.state.author}
+            url={this.state.url}
+          />
+        </Togglable>
         <br />
         {this.state.blogs.map(blog => 
-          <Blog key={blog.id} blog={blog}/>
+          <Blog
+            key={blog.id}
+            blog={blog}
+            like={this.likeBlog(blog.id)}
+            delete={this.deleteBlog(blog.id)}
+            loggedUser={this.state.user}
+          />
         )}
       </div>
     );
