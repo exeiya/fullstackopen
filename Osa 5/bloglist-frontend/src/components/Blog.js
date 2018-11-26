@@ -39,14 +39,14 @@ class Blog extends React.Component {
 
     if (!this.state.expanded) {
       return (
-        <div style={blogStyle} onClick={this.expand}>
+        <div className='content' style={blogStyle} onClick={this.expand}>
           {title} {author}
         </div>
       )
     }
     
     return (
-      <div style={blogStyle}>
+      <div className='content' style={blogStyle}>
           <div onClick={this.expand}>
             {title} {author} 
           </div>
