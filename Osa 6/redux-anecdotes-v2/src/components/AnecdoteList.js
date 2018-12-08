@@ -4,9 +4,11 @@ import Anecdote from './Anecdote'
 import Filter from './Filter'
 import { voteAnecdote } from '../reducers/anecdoteReducer'
 import { setNotification, removeNotification } from '../reducers/notificationReducer'
+import anecdoteService from '../services/anecdotes'
 
 const AnecdoteList = ({ anecdotesToShow, voteAnecdote, setNotification, removeNotification }) => {
-  const vote = (anecdote) => () => {
+  const vote = (anecdote) => async () => {
+    await anecdoteService.updateVotes(anecdote.id, anecdote.votes)
     voteAnecdote(anecdote.id)
     setNotification(`Voted anecdote ${anecdote.content}`)
     setTimeout(() => {
