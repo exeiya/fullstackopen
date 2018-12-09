@@ -62,7 +62,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="container">
         <Router>
           <div>
             <h1>Software anecdotes</h1>
