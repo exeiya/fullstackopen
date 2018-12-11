@@ -1,4 +1,5 @@
 import React from 'react'
+import { connect } from 'react-redux'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
@@ -6,6 +7,7 @@ import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
+import { notify } from './reducers/notificationReducer'
 
 class App extends React.Component {
   constructor(props) {
@@ -17,14 +19,12 @@ class App extends React.Component {
       title: '',
       author: '',
       url: '',
-      user: null,
-      notification: null
+      user: null
     }
   }
 
   componentDidMount() {
     blogService.getAll().then(blogs => {
-      // sort blogs when the page is loaded - sorting on every like makes the UI elements constantly jump around resulting in bad UI experience
       blogs = blogs.sort((a, b) => b.likes - a.likes)
       this.setState({ blogs })
     })
@@ -50,10 +50,10 @@ class App extends React.Component {
       this.setState({ username: '', password: '', user })
       blogService.setToken(user.token)
       window.localStorage.setItem('loggedUser', JSON.stringify(user))
-      this.showNotificationWithTimeout(`${user.name} logged in!`, 'success')
+      this.props.notify(`${user.name} logged in!`, false)
     } catch (e) {
       console.log(e)
-      this.showNotificationWithTimeout('Wrong username or password', 'error')
+      this.props.notify('Wrong username or password', true)
     }
   }
 
@@ -80,11 +80,11 @@ class App extends React.Component {
         author: '',
         url: ''
       })
-      this.showNotificationWithTimeout(`A new blog ${addedBlog.title} by ${addedBlog.author} added`, 'success')
+      this.props.notify(`A new blog ${addedBlog.title} by ${addedBlog.author} added`, false)
       this.blogForm.toggleVisibility()
     } catch (e) {
       console.log(e)
-      this.showNotificationWithTimeout('A new blog could not be created', 'error')
+      this.props.notify('A new blog could not be created', true)
     }
   }
 
@@ -96,8 +96,10 @@ class App extends React.Component {
       this.setState({
         blogs: this.state.blogs.map(b => b.id !== blog.id ? b : { ...updatedBlog, user: blog.user })
       })
+      this.props.notify(`Liked blog ${blog.title} by ${blog.author}`, false)
     } catch (e) {
       console.log(e)
+      this.props.notify('Blog could not be liked', true)
     }
   }
 
@@ -107,21 +109,12 @@ class App extends React.Component {
       if (window.confirm(`Delete blog ${blog.title} by ${blog.author}?`)) {
         await blogService.deleteId(id)
         this.setState({ blogs: this.state.blogs.filter(b => b.id !== id) })
-        return this.showNotificationWithTimeout(`Deleted blog ${blog.title} by ${blog.author}`, 'success')
+        return this.props.notify(`Deleted blog ${blog.title} by ${blog.author}`, false)
       }
     } catch (e) {
       console.log(e)
-      this.showNotificationWithTimeout(`Blog ${blog.title} by ${blog.author} could not be deleted`, 'error')
+      this.props.notify(`Blog ${blog.title} by ${blog.author} could not be deleted`, true)
     }
-  }
-
-  showNotificationWithTimeout = (msg, type) => {
-    this.setState({
-      notification: { msg, type }
-    })
-    setTimeout(() => {
-      this.setState({ notification: null })
-    }, 3000)
   }
 
   render() {
@@ -129,7 +122,7 @@ class App extends React.Component {
       return (
         <div>
           <h2>Log in to application</h2>
-          <Notification notification={this.state.notification} />
+          <Notification />
           <LoginForm
             handleLogin={this.handleLogin}
             handleFormChange={this.handleLoginFormChange}
@@ -172,4 +165,9 @@ class App extends React.Component {
   }
 }
 
-export default App
+
+
+export default connect(
+  null,
+  { notify }
+)(App)

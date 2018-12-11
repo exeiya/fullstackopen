@@ -1,4 +1,5 @@
 import React from 'react'
+import { connect } from 'react-redux'
 
 const Notification = ({ notification }) => {
   const errorStyle = {
@@ -24,7 +25,7 @@ const Notification = ({ notification }) => {
 
   return (
     <div>
-      {notification.type === 'error' ?
+      {notification.error ?
         <div style={errorStyle}>{notification.msg}</div> :
         <div style={successStyle}>{notification.msg}</div>
       }
@@ -32,4 +33,12 @@ const Notification = ({ notification }) => {
   )
 }
 
-export default Notification
+const mapStateToProps = (state) => {
+  return {
+    notification: state.notification
+  }
+}
+
+export default connect(
+  mapStateToProps
+)(Notification)
