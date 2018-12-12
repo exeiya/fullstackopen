@@ -1,13 +1,17 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 import BlogList from './components/BlogList'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
+import UserList from './components/UserList'
+import User from './components/User'
 import { notify } from './reducers/notificationReducer'
 import { initializeBlogs, createBlog } from './reducers/blogReducer'
 import { setLoggedUser, login, logout } from './reducers/loginReducer'
+import { initializeUsers } from './reducers/userReducer'
 
 class App extends React.Component {
   constructor(props) {
@@ -24,6 +28,7 @@ class App extends React.Component {
   async componentDidMount() {
     this.props.initializeBlogs()
     this.props.setLoggedUser()
+    this.props.initializeUsers()
   }
 
   handleLoginFormChange = (event) => {
@@ -94,23 +99,33 @@ class App extends React.Component {
 
     return (
       <div>
-        <h2>Blogs</h2>
-        <Notification />
-        <p>
-          {this.props.user.name} logged in <button onClick={this.handleLogout}>Logout</button>
-        </p>
-        <h3>Create new blog entry</h3>
-        <Togglable buttonLabel='Create a new blog' ref={ component => this.blogForm = component }>
-          <BlogForm
-            handleCreate={this.createBlog}
-            handleFormChange={this.handleBlogFromChange}
-            title={this.state.title}
-            author={this.state.author}
-            url={this.state.url}
-          />
-        </Togglable>
-        <br />
-        <BlogList />
+        <Router>
+          <div>
+            <h2>Blog App</h2>
+            <Notification />
+            <p>
+              {this.props.user.name} logged in <button onClick={this.handleLogout}>Logout</button>
+            </p>
+            <Route exact path="/" render={() =>
+              <div>
+                <h3>Create new blog entry</h3>
+                <Togglable buttonLabel='Create a new blog' ref={ component => this.blogForm = component }>
+                  <BlogForm
+                    handleCreate={this.createBlog}
+                    handleFormChange={this.handleBlogFromChange}
+                    title={this.state.title}
+                    author={this.state.author}
+                    url={this.state.url}
+                  />
+                </Togglable>
+                <br />
+                <BlogList />
+              </div>
+            } />
+            <Route exact path="/users" render={() => <UserList /> } />
+            <Route exact path="/users/:id" render={({ match }) => <User id={match.params.id} />} />
+          </div>
+        </Router>
       </div>
     )
   }
@@ -124,5 +139,5 @@ const mapStateToProps = (state) => {
 
 export default connect(
   mapStateToProps,
-  { notify, initializeBlogs, createBlog, setLoggedUser, login, logout }
+  { notify, initializeBlogs, createBlog, setLoggedUser, login, logout, initializeUsers }
 )(App)
