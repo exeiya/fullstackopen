@@ -6,20 +6,14 @@ import { notify } from '../reducers/notificationReducer'
 
 class Blog extends React.Component {
   static propTypes = {
-    blog: PropTypes.object.isRequired,
+    blog: PropTypes.object,
     loggedUser: PropTypes.string.isRequired
   }
 
   constructor(props) {
     super(props)
-    this.state = {
-      expanded: false
-    }
   }
 
-  expand = () => {
-    this.setState({ expanded: !this.state.expanded })
-  }
 
   like = async () => {
     const blog = this.props.blog
@@ -48,16 +42,6 @@ class Blog extends React.Component {
   }
 
   render() {
-    const { title, author, url, likes, user } = this.props.blog
-    const blogStyle = {
-      paddingTop: 10,
-      paddingLeft: 2,
-      paddingBottom: 2,
-      border: 'solid',
-      borderWidth: 1,
-      marginBottom: 5
-    }
-
     const deleteButton = () => {
       if (user === null || this.props.loggedUser === user.username ) {
         return <button onClick={this.delete}>delete</button>
@@ -65,19 +49,13 @@ class Blog extends React.Component {
       return null
     }
 
-    if (!this.state.expanded) {
-      return (
-        <div className='content' style={blogStyle} onClick={this.expand}>
-          {title} by {author}
-        </div>
-      )
-    }
+    if (!this.props.blog) return null
+
+    const { title, author, url, likes, user } = this.props.blog
 
     return (
-      <div className='content' style={blogStyle}>
-        <div onClick={this.expand}>
-          {title} by {author}
-        </div>
+      <div className='content'>
+        <h2>{title} by {author}</h2>
         <div style={{ marginLeft: '5px', marginTop: '5px' }}>
           <a href={url} target="_blank" rel="noopener noreferrer">{url}</a> <br />
           {likes} likes <button onClick={this.like}>like</button><br />
@@ -93,7 +71,7 @@ const mapStateToProps = (state, props) => {
   const blog = state.blogs.find(b => b.id === props.id)
   return {
     blog,
-    loggedUser: props.loggedUser
+    loggedUser: state.loggedUser.name
   }
 }
 

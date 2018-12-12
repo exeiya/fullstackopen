@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { BrowserRouter as Router, Route } from 'react-router-dom'
 import BlogList from './components/BlogList'
+import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
@@ -122,6 +123,7 @@ class App extends React.Component {
                 <BlogList />
               </div>
             } />
+            <Route exact path="/blogs/:id" render={({ match }) => <Blog id={match.params.id} />} />
             <Route exact path="/users" render={() => <UserList /> } />
             <Route exact path="/users/:id" render={({ match }) => <User id={match.params.id} />} />
           </div>
