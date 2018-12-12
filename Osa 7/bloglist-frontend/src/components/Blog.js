@@ -10,11 +10,6 @@ class Blog extends React.Component {
     loggedUser: PropTypes.string.isRequired
   }
 
-  constructor(props) {
-    super(props)
-  }
-
-
   like = async () => {
     const blog = this.props.blog
     try {

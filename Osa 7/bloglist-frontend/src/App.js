@@ -6,7 +6,6 @@ import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
-import Togglable from './components/Togglable'
 import UserList from './components/UserList'
 import User from './components/User'
 import { notify } from './reducers/notificationReducer'
@@ -19,10 +18,7 @@ class App extends React.Component {
     super(props)
     this.state = {
       username: '',
-      password: '',
-      title: '',
-      author: '',
-      url: ''
+      password: ''
     }
   }
 
@@ -56,32 +52,6 @@ class App extends React.Component {
     this.props.logout()
   }
 
-  handleBlogFromChange = (event) => {
-    this.setState({ [event.target.name] : event.target.value })
-  }
-
-  createBlog = async (event) => {
-    event.preventDefault()
-    try {
-      const addedBlog = {
-        title: this.state.title,
-        author: this.state.author,
-        url: this.state.url
-      }
-      await this.props.createBlog(addedBlog)
-      this.setState({
-        title: '',
-        author: '',
-        url: ''
-      })
-      this.props.notify(`A new blog ${addedBlog.title} by ${addedBlog.author} added`, false)
-      this.blogForm.toggleVisibility()
-    } catch (e) {
-      console.log(e)
-      this.props.notify('A new blog could not be created', true)
-    }
-  }
-
   render() {
     if (this.props.user === null) {
       return (
@@ -109,17 +79,7 @@ class App extends React.Component {
             </p>
             <Route exact path="/" render={() =>
               <div>
-                <h3>Create new blog entry</h3>
-                <Togglable buttonLabel='Create a new blog' ref={ component => this.blogForm = component }>
-                  <BlogForm
-                    handleCreate={this.createBlog}
-                    handleFormChange={this.handleBlogFromChange}
-                    title={this.state.title}
-                    author={this.state.author}
-                    url={this.state.url}
-                  />
-                </Togglable>
-                <br />
+                <BlogForm />
                 <BlogList />
               </div>
             } />
@@ -141,5 +101,5 @@ const mapStateToProps = (state) => {
 
 export default connect(
   mapStateToProps,
-  { notify, initializeBlogs, createBlog, setLoggedUser, login, logout, initializeUsers }
+  { notify, initializeBlogs, setLoggedUser, login, logout, initializeUsers }
 )(App)
