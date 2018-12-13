@@ -5,11 +5,12 @@ import BlogList from './components/BlogList'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
+import Menu from './components/Menu'
 import Notification from './components/Notification'
 import UserList from './components/UserList'
 import User from './components/User'
 import { initializeBlogs } from './reducers/blogReducer'
-import { setLoggedUser, logout } from './reducers/loginReducer'
+import { setLoggedUser } from './reducers/loginReducer'
 import { initializeUsers } from './reducers/userReducer'
 
 class App extends React.Component {
@@ -36,12 +37,11 @@ class App extends React.Component {
         <Router>
           <div>
             <h2>Blog App</h2>
+            <Menu />
             <Notification />
-            <p>
-              {this.props.user.name} logged in <button onClick={() => this.props.logout()}>Logout</button>
-            </p>
             <Route exact path="/" render={() =>
               <div>
+                <h3>Blogs</h3>
                 <BlogForm />
                 <BlogList />
               </div>
@@ -64,5 +64,5 @@ const mapStateToProps = (state) => {
 
 export default connect(
   mapStateToProps,
-  { initializeBlogs, setLoggedUser, logout, initializeUsers }
+  { initializeBlogs, setLoggedUser, initializeUsers }
 )(App)

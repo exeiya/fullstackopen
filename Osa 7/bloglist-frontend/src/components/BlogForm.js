@@ -46,14 +46,20 @@ class BlogForm extends React.Component {
   }
 
   render() {
+    const formStyle = {
+      paddingBottom: '5px'
+    }
+
     if (!this.state.show) {
       return (
-        <button onClick={this.toggleVisibility}>Create a new blog</button>
+        <div style={formStyle}>
+          <button onClick={this.toggleVisibility}>Create a new blog</button>
+        </div>
       )
     }
 
     return (
-      <div>
+      <div style={formStyle}>
         <h3>Create new blog entry</h3>
         <form onSubmit={ this.handleSubmit }>
           <div>
