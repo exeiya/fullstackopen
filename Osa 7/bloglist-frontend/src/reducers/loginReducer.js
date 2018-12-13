@@ -1,5 +1,6 @@
 import loginService from '../services/login'
 import blogService from '../services/blogs'
+import { notify } from './notificationReducer'
 
 const loginReducer = (state = null, action) => {
   switch (action.type) {
@@ -15,12 +16,13 @@ const loginReducer = (state = null, action) => {
 export const login = (user) => {
   return async (dispatch) => {
     const loggedUser = await loginService.login(user)
-    blogService.setToken(user.token)
+    blogService.setToken(loggedUser.token)
     window.localStorage.setItem('loggedUser', JSON.stringify(loggedUser))
     dispatch({
       type: 'LOGIN',
       data: loggedUser
     })
+    dispatch(notify(`${loggedUser.name} logged in!`, false))
   }
 }
 

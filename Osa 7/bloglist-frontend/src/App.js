@@ -8,62 +8,25 @@ import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import UserList from './components/UserList'
 import User from './components/User'
-import { notify } from './reducers/notificationReducer'
-import { initializeBlogs, createBlog } from './reducers/blogReducer'
-import { setLoggedUser, login, logout } from './reducers/loginReducer'
+import { initializeBlogs } from './reducers/blogReducer'
+import { setLoggedUser, logout } from './reducers/loginReducer'
 import { initializeUsers } from './reducers/userReducer'
 
 class App extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      username: '',
-      password: ''
-    }
-  }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.props.initializeBlogs()
     this.props.setLoggedUser()
     this.props.initializeUsers()
   }
 
-  handleLoginFormChange = (event) => {
-    this.setState({ [event.target.name] : event.target.value })
-  }
-
-  handleLogin = async (event) => {
-    event.preventDefault()
-    try {
-      const user = {
-        username: this.state.username,
-        password: this.state.password
-      }
-      await this.props.login(user)
-      this.setState({ username: '', password: '' })
-      this.props.notify(`${this.props.user.name} logged in!`, false)
-    } catch (e) {
-      console.log(e)
-      this.props.notify('Wrong username or password', true)
-    }
-  }
-
-  handleLogout = () => {
-    this.props.logout()
-  }
-
   render() {
-    if (this.props.user === null) {
+    if (!this.props.user) {
       return (
         <div>
           <h2>Log in to application</h2>
           <Notification />
-          <LoginForm
-            handleLogin={this.handleLogin}
-            handleFormChange={this.handleLoginFormChange}
-            username={this.state.username}
-            password={this.state.password}
-          />
+          <LoginForm />
         </div>
       )
     }
@@ -75,7 +38,7 @@ class App extends React.Component {
             <h2>Blog App</h2>
             <Notification />
             <p>
-              {this.props.user.name} logged in <button onClick={this.handleLogout}>Logout</button>
+              {this.props.user.name} logged in <button onClick={() => this.props.logout()}>Logout</button>
             </p>
             <Route exact path="/" render={() =>
               <div>
@@ -101,5 +64,5 @@ const mapStateToProps = (state) => {
 
 export default connect(
   mapStateToProps,
-  { notify, initializeBlogs, setLoggedUser, login, logout, initializeUsers }
+  { initializeBlogs, setLoggedUser, logout, initializeUsers }
 )(App)
