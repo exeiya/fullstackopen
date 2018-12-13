@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
 
 const UserList = ({ users }) => {
-  console.log(users)
   return (
     <div>
       <h3>Users</h3>

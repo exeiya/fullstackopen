@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom'
 import BlogList from './components/BlogList'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
@@ -34,21 +34,24 @@ class App extends React.Component {
 
     return (
       <div>
+        <h2>Blog App</h2>
         <Router>
           <div>
-            <h2>Blog App</h2>
             <Menu />
             <Notification />
-            <Route exact path="/" render={() =>
-              <div>
-                <h3>Blogs</h3>
-                <BlogForm />
-                <BlogList />
-              </div>
-            } />
-            <Route exact path="/blogs/:id" render={({ match }) => <Blog id={match.params.id} />} />
-            <Route exact path="/users" render={() => <UserList /> } />
-            <Route exact path="/users/:id" render={({ match }) => <User id={match.params.id} />} />
+            <Switch>
+              <Route exact path="/blogs/:id" render={({ match, history }) => <Blog id={match.params.id} history={history} />} />
+              <Route exact path="/users" render={() => <UserList /> } />
+              <Route exact path="/users/:id" render={({ match }) => <User id={match.params.id} />} />
+              <Route exact path="/" render={() =>
+                <div>
+                  <h3>Blogs</h3>
+                  <BlogForm />
+                  <BlogList />
+                </div>
+              } />
+              <Route render={() => <Redirect to="/" />} />
+            </Switch>
           </div>
         </Router>
       </div>

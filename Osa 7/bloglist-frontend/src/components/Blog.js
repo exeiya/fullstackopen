@@ -28,7 +28,8 @@ class Blog extends React.Component {
     try {
       if (window.confirm(`Delete blog ${blog.title} by ${blog.author}?`)) {
         await this.props.deleteBlog(blog.id)
-        return this.props.notify(`Deleted blog ${blog.title} by ${blog.author}`, false)
+        this.props.notify(`Deleted blog ${blog.title} by ${blog.author}`, false)
+        this.props.history.push('/')
       }
     } catch (e) {
       console.log(e)
@@ -66,7 +67,7 @@ const mapStateToProps = (state, props) => {
   const blog = state.blogs.find(b => b.id === props.id)
   return {
     blog,
-    loggedUser: state.loggedUser.name
+    loggedUser: state.loggedUser.username
   }
 }
 
