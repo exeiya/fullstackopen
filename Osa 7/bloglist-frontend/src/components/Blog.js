@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { likeBlog, deleteBlog } from '../reducers/blogReducer'
+import { likeBlog, deleteBlog, addComment } from '../reducers/blogReducer'
 import { notify } from '../reducers/notificationReducer'
 
 class Blog extends React.Component {
@@ -37,6 +37,19 @@ class Blog extends React.Component {
     }
   }
 
+  addComment = async (event) => {
+    event.preventDefault()
+    try {
+      const content = event.target.comment.value
+      event.target.comment.value = ''
+      await this.props.addComment(this.props.blog.id, content)
+      this.props.notify(`Comment '${content}' added to blog '${this.props.blog.title}'`, false)
+    } catch (e) {
+      console.log(e)
+      this.props.notify('Comment could not be added', true)
+    }
+  }
+
   render() {
     const deleteButton = () => {
       if (user === null || this.props.loggedUser === user.username ) {
@@ -58,6 +71,19 @@ class Blog extends React.Component {
           added by {user ? user.name : '[user deleted]'} <br/>
           {deleteButton()}
         </div>
+        <h3>comments</h3>
+        <form onSubmit={this.addComment}>
+          <input name='comment' />
+          <button>add comment</button>
+        </form>
+        {this.props.blog.comments.length > 0
+          ? <ul>
+            {this.props.blog.comments.map((comment, index) =>
+              <li key={index}>{comment}</li>
+            )}
+          </ul>
+          : <p><i>No comments yet</i></p>
+        }
       </div>
     )
   }
@@ -73,5 +99,5 @@ const mapStateToProps = (state, props) => {
 
 export default connect(
   mapStateToProps,
-  { likeBlog, deleteBlog, notify }
+  { likeBlog, deleteBlog, notify, addComment }
 )(Blog)

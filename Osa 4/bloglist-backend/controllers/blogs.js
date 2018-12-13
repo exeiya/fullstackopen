@@ -83,4 +83,16 @@ blogsRouter.put('/:id', async (req, res) => {
   }
 })
 
+blogsRouter.post('/:id/comments', async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id)
+    blog.comments = blog.comments.concat(req.body.comment)
+    const updatedBlog = await blog.save()
+    res.status(200).json(Blog.format(updatedBlog))
+  } catch (e) {
+    console.log(e)
+    res.status(400).send({ error: 'malformatted id' }) 
+  }
+})
+
 module.exports = blogsRouter
