@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { likeBlog, deleteBlog, addComment } from '../reducers/blogReducer'
 import { notify } from '../reducers/notificationReducer'
+import { Button, Col, Form, FormControl, FormGroup } from 'react-bootstrap'
 
 class Blog extends React.Component {
   static propTypes = {
@@ -53,7 +54,7 @@ class Blog extends React.Component {
   render() {
     const deleteButton = () => {
       if (user === null || this.props.loggedUser === user.username ) {
-        return <button onClick={this.delete}>delete</button>
+        return <Button bsStyle='danger' bsSize='small' onClick={this.delete}>delete</Button>
       }
       return null
     }
@@ -67,15 +68,21 @@ class Blog extends React.Component {
         <h2>{title} by {author}</h2>
         <div style={{ marginLeft: '5px', marginTop: '5px' }}>
           <a href={url} target="_blank" rel="noopener noreferrer">{url}</a> <br />
-          {likes} likes <button onClick={this.like}>like</button><br />
+          {likes} likes <Button bsStyle='success' bsSize='small' onClick={this.like}>like</Button><br />
           added by {user ? user.name : '[user deleted]'} <br/>
           {deleteButton()}
         </div>
         <h3>comments</h3>
-        <form onSubmit={this.addComment}>
-          <input name='comment' />
-          <button>add comment</button>
-        </form>
+        <Form horizontal onSubmit={this.addComment}>
+          <FormGroup>
+            <Col sm={6}>
+              <FormControl name='comment' />
+            </Col>
+            <Col sm={1}>
+              <Button bsStyle='primary'>add comment</Button>
+            </Col>
+          </FormGroup>
+        </Form>
         {this.props.blog.comments.length > 0
           ? <ul>
             {this.props.blog.comments.map((comment, index) =>

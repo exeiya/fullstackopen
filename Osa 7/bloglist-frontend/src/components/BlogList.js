@@ -1,25 +1,17 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { ListGroup, ListGroupItem } from 'react-bootstrap'
 
 const BlogList = ({ blogs }) => {
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    paddingBottom: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5
-  }
-
   return (
-    <div>
+    <ListGroup>
       {blogs.map(blog =>
-        <div key={blog.id} style={blogStyle}>
+        <ListGroupItem key={blog.id} >
           <Link to={`/blogs/${blog.id}`}>{blog.title} by {blog.author}</Link>
-        </div>
+        </ListGroupItem>
       )}
-    </div>
+    </ListGroup>
   )
 }
 

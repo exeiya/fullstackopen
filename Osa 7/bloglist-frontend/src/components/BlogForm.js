@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { notify } from '../reducers/notificationReducer'
 import { createBlog } from '../reducers/blogReducer'
+import { Button, Form, FormGroup, FormControl, Col, ControlLabel } from 'react-bootstrap'
 
 class BlogForm extends React.Component {
   constructor(props) {
@@ -53,7 +54,7 @@ class BlogForm extends React.Component {
     if (!this.state.show) {
       return (
         <div style={formStyle}>
-          <button onClick={this.toggleVisibility}>Create a new blog</button>
+          <Button bsStyle='primary' onClick={this.toggleVisibility}>Create a new blog</Button>
         </div>
       )
     }
@@ -61,19 +62,40 @@ class BlogForm extends React.Component {
     return (
       <div style={formStyle}>
         <h3>Create new blog entry</h3>
-        <form onSubmit={ this.handleSubmit }>
-          <div>
-            Title <input type="text" name="title" value={this.state.title} onChange={this.handleFormChange} />
-          </div>
-          <div>
-            Author <input type="text" name="author" value={this.state.author} onChange={this.handleFormChange} />
-          </div>
-          <div>
-            Url <input type="text" name="url" value={this.state.url} onChange={this.handleFormChange} />
-          </div>
-          <button type="submit">Create</button>
-        </form>
-        <button onClick={this.toggleVisibility}>Cancel</button>
+        <Form horizontal onSubmit={ this.handleSubmit }>
+          <FormGroup >
+            <Col componentClass={ControlLabel} sm={1}>
+              Title
+            </Col>
+            <Col sm={6}>
+              <FormControl type="text" name="title" value={this.state.title} onChange={this.handleFormChange} />
+            </Col>
+          </FormGroup>
+          <FormGroup>
+            <Col componentClass={ControlLabel} sm={1}>
+              Author
+            </Col>
+            <Col sm={6}>
+              <FormControl type="text" name="author" value={this.state.author} onChange={this.handleFormChange} />
+            </Col>
+          </FormGroup>
+          <FormGroup>
+            <Col componentClass={ControlLabel} sm={1}>
+              Url
+            </Col>
+            <Col sm={6}>
+              <FormControl type="text" name="url" value={this.state.url} onChange={this.handleFormChange} />
+            </Col>
+          </FormGroup>
+          <FormGroup>
+            <Col smOffset={3} sm={1}>
+              <Button bsStyle="success" type="submit">Create</Button>
+            </Col>
+            <Col sm={1}>
+              <Button bsStyle='warning' onClick={this.toggleVisibility}>Cancel</Button>
+            </Col>
+          </FormGroup>
+        </Form>
       </div>
     )
   }

@@ -24,7 +24,7 @@ class App extends React.Component {
   render() {
     if (!this.props.user) {
       return (
-        <div>
+        <div className="container">
           <h2>Log in to application</h2>
           <Notification />
           <LoginForm />
@@ -33,7 +33,7 @@ class App extends React.Component {
     }
 
     return (
-      <div>
+      <div className="container">
         <h2>Blog App</h2>
         <Router>
           <div>
